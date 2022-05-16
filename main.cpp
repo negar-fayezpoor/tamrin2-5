@@ -1,92 +1,113 @@
-// This program has an error
 #include <iostream>
 #include <cstdlib>
-
 using namespace std;
 
-class Time {
-    int min;
-    int hour;
-public:
-    Time();
-    Time(int m , int h);
-    Time(int h);
-    void set_time(int m , int h);
-    int get_minute(){return min;}
-    int get_hour(){return hour;}
-    int compare (Time t2);
-    string TimeofDay();
 
+class Date {
+public:
+    Date(int d, int m, int y);
+    void set_date(int d, int m, int y);
+    void print_date();
+    void inc_one_day();
+    bool equals(Date d);
+
+    int get_day() { return day; }
+    int get_month() { return month; }
+    int get_year() { return year; }
+    int compare(Date d2);
+private:
+    int day;
+    int month;
+    int year;
 };
 
-Time::Time(){
-    hour = 0;
-    min = 0;
+Date::Date(int d, int m, int y)
+{
+    set_date(d, m, y);
 }
 
-Time::Time(int h , int m){
-    hour = h;
-    min = m;
+bool is_leap_year(int year)
+{
+    int r = year % 33;
+    return r==1 || r==5 || r==9 || r==13 || r==17 || r==22 || r==26 || r==30;
 }
 
-Time::Time(int h){
-    hour = h;
-    min = 0;
-}
-
-void Time::set_time(int h, int m){
-    if (h < 0 || h > 23 || m < 0 || m > 59)
+int days_of_month(int m, int y)
+{
+    if (m < 7)
+        return 31;
+    else if (m < 12)
+        return 30;
+    else if (m == 12)
+        return is_leap_year(y) ? 30 : 29;
+    else
         abort();
-    hour = h;
-    min = m;
 }
 
-int Time::compare(Time t2){
-    if((hour == t2.hour) && (min == t2.min))
+void Date::set_date(int d, int m, int y)
+{
+    if (y < 0 || m < 1 || m > 12 || d < 1 || d > days_of_month(m, y))
+        abort();
+
+    day = d;
+    month = m;
+    year = y;
+}
+
+void Date::inc_one_day()
+{
+    day++;
+    if (day > days_of_month(month, year)) {
+        day = 1;
+        month++;
+        if (month > 12) {
+            month = 1;
+            year++;
+        }
+    }
+}
+
+void Date::print_date()
+{
+    cout << day << '/' << month << '/' << year << endl;
+}
+
+bool Date::equals(Date d) {
+    return day == d.day &&
+           month == d.month &&
+           year == d.year;
+}
+
+int Date::compare(Date d2){
+    if ((year == d2.year) && (month == d2.month) && (day == d2.day))
         return 0;
-    else if ((hour > t2.hour) || ((hour == t2.hour) && (min > t2.min)))
+    else if (
+        (year > d2.year) ||
+        ((year == d2.year) && (month > d2.month)) ||
+        ((year == d2.year) && (month == d2.month) && (day > d2.day)))
         return 1;
 
     return -1;
 }
 
-string Time::TimeofDay(){
-    string result = "";
-    if (hour < 12)
-        result = "Morning";
-    else if (hour == 12)
-        result = "Non";
-    else if (hour > 12 && hour < 17)
-        result = "Afternon";
-    else if (hour >= 17 && hour < 20)
-        result = "Evening";
-    else
-        result = "Night";
-    return result;
+int days_between(Date d1, Date d2) {
+    // Assuming d1 is not later than d2
+    int count = 0;
+    if (d1.compare(d2) == 1) {
+        Date temp (d1.get_day() , d1.get_month() , d1.get_year());
+        d1.set_date (d2.get_day() , d2.get_month() , d2.get_year());
+        d2.set_date (temp.get_day() , temp.get_month() , temp.get_year());
+    }
+    while (!d1.equals(d2)) {
+        d1.inc_one_day();
+        count++;
+    }
+    return count;
 }
 
 int main()
 {
-   Time start (16 , 20);
-   Time end (16 , 20);
-   if (end.compare(start) == 1){
-   cout << "You started on " << start.TimeofDay()
-        << " (" << start.get_hour() << ":" << start.get_minute() << ")";
-   cout << "\nand finished on " << end.TimeofDay()
-        << " (" << end.get_hour() << ":" << end.get_minute() << ")";
-   }
-   else if (end.compare(start) == 0)
-       cout << "You have not worked for us";
-   else
-       cout << "invalid";
-
-   getchar();
-    return 0;
+    Date bd(10,12,1392);
+    Date today(10,12,1391);
+    cout << days_between(bd, today) << endl;
 }
-
-
-
-
-
-
-
